@@ -67,32 +67,54 @@ public class ClaimBlockListener implements Listener {
         plugin.playSound(player, "claim-created");
     }
     
-    @EventHandler
-    public void onClaimBlockInteract(PlayerInteractEvent event) {
-        if (event.getHand() != EquipmentSlot.HAND) return;
-        if (!event.getAction().name().contains("RIGHT_CLICK")) return;
-        if (!event.hasBlock()) return;
-        
-        Player player = event.getPlayer();
-        Location blockLoc = event.getClickedBlock().getLocation();
-        
-        Claim claim = plugin.getClaimData().getClaimAt(blockLoc);
-        if (claim == null) return;
-        
-        if (!claim.getBlockLocation().equals(blockLoc)) return;
-        
-        if (!plugin.getClaimManager().isClaimBlock(new ItemStack(event.getClickedBlock().getType()))) return;
-        
-        event.setCancelled(true);
-        
-        if (!claim.getOwnerId().equals(player.getUniqueId()) && !player.hasPermission("labclaims.admin")) {
-            player.sendMessage(plugin.getMessage("not-claim-owner"));
-            return;
-        }
-        
-        ClaimPanelGUI gui = new ClaimPanelGUI(plugin, player, claim);
-        gui.open();
+@EventHandler
+public void onClaimBlockInteract(PlayerInteractEvent event) {
+    if (event.getHand() != EquipmentSlot.HAND) return;
+    if (!event.getAction().name().contains("RIGHT_CLICK")) return;
+    if (!event.hasBlock()) return;
+    
+    Player player = event.getPlayer();
+    Location blockLoc = event.getClickedBlock().getLocation();
+    
+    // Znajdź claim na tej lokalizacji
+    Claim claim = plugin.getClaimData().getClaimAt(blockLoc);
+    if (claim == null) return;
+    
+    // Sprawdź czy to dokładnie claim block (środek)
+    Location claimBlockLoc = claim.getBlockLocation();
+    if (!blockLoc.getBlockX().equals(claimBlockLoc.getBlockX()) ||
+        !blockLoc.getBlockY().equals(claimBlockLoc.getBlockY()) ||
+        !blockLoc.getBlockZ().equals(claimBlockLoc.getBlockZ())) {
+        return;
     }
+    
+    // Sprawdź czy blok to glazed terracotta (claim block)
+    Material blockType = event.getClickedBlock().getType();
+    boolean isClaimBlockType = false;
+    
+    for (int tier = 1; tier <= 5; tier++) {
+        String materialName = plugin.getConfig().getString("tiers." + tier + ".block");
+        if (materialName != null && blockType == Material.valueOf(materialName)) {
+            isClaimBlockType = true;
+            break;
+        }
+    }
+    
+    if (!isClaimBlockType) return;
+    
+    event.setCancelled(true);
+    
+    // Sprawdź permisje
+    if (!claim.getOwnerId().equals(player.getUniqueId()) && !player.hasPermission("labclaims.admin")) {
+        player.sendMessage(plugin.getMessage("not-claim-owner"));
+        return;
+    }
+    
+    // Otwórz Panel Działki
+    plugin.getLogger().info("Otwieranie panelu dla gracza: " + player.getName());
+    ClaimPanelGUI gui = new ClaimPanelGUI(plugin, player, claim);
+    gui.open();
+}
     
     @EventHandler(priority = EventPriority.HIGH)
     public void onClaimBlockBreak(BlockBreakEvent event) {
