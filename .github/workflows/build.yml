@@ -30,7 +30,4 @@ jobs:
     - name: Upload JAR file
       uses: actions/upload-artifact@v4
       with:
-        name: LabClaims-Plugin
-        path: target/*.jar
-        if-no-files-found: error
-```
+        name: LabMC-ClaimBlocks2-Plugin
