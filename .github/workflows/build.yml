@@ -20,22 +20,33 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
         cache: 'maven'
+    
+    - name: Check project structure
+      run: |
+        echo "=== Root directory ==="
+        ls -la
+        echo ""
+        echo "=== Source directory structure ==="
+        find src -type f
+        echo ""
+        echo "=== Checking pom.xml ==="
+        cat pom.xml
         
-    - name: Build with Maven
-      run: mvn clean package
+    - name: Build with Maven (verbose)
+      run: mvn -e -X clean compile package
       
-- name: Check source structure
-  run: |
-    echo "Checking src structure:"
-    ls -R src/
-    
-- name: Build with Maven verbose
-  run: mvn -X clean package
-    
-- name: List target directory
-  run: ls -la target/ || echo "Target directory not found"
+    - name: Check target directory
+      run: |
+        echo "=== Target directory ==="
+        ls -la target/ || echo "Target directory not found!"
+        echo ""
+        echo "=== Looking for JAR files ==="
+        find . -name "*.jar" -type f
       
     - name: Upload JAR file
+      if: success()
       uses: actions/upload-artifact@v4
       with:
-        name: LabMC-ClaimBlocks2-Plugin
+        name: LabClaims-Plugin
+        path: target/*.jar
+        if-no-files-found: warn
