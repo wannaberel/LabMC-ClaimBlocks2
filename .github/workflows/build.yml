@@ -24,8 +24,16 @@ jobs:
     - name: Build with Maven
       run: mvn clean package
       
-    - name: List target directory
-      run: ls -la target/
+- name: Check source structure
+  run: |
+    echo "Checking src structure:"
+    ls -R src/
+    
+- name: Build with Maven verbose
+  run: mvn -X clean package
+    
+- name: List target directory
+  run: ls -la target/ || echo "Target directory not found"
       
     - name: Upload JAR file
       uses: actions/upload-artifact@v4
