@@ -1,0 +1,47 @@
+name: LabClaims
+version: 1.0
+main: pl.labmc.claims.LabClaims
+api-version: 1.21
+author: LabMC
+description: System dzialek dla LabMC.pl
+website: https://labmc.pl
+softdepend: [Vault]
+
+commands:
+  claim:
+    description: Glowna komenda systemu dzialek
+    usage: /<command> [buy/info/trust/untrust/remove/admin]
+    aliases: [claims, dzialka, dzialki]
+
+permissions:
+  labclaims.use:
+    description: Podstawowe uzycie dzialek
+    default: true
+  
+  labclaims.buy:
+    description: Mozliwosc kupowania dzialek
+    default: true
+  
+  labclaims.limit.1:
+    description: Limit 1 dzialka
+    default: true
+  
+  labclaims.limit.3:
+    description: Limit 3 dzialki
+    default: false
+  
+  labclaims.limit.5:
+    description: Limit 5 dzialek
+    default: false
+  
+  labclaims.unlimited:
+    description: Unlimited dzialek
+    default: false
+  
+  labclaims.admin:
+    description: Dostep do panelu admina
+    default: op
+  
+  labclaims.bypass:
+    description: Bypass ochrony dzialek
+    default: op
