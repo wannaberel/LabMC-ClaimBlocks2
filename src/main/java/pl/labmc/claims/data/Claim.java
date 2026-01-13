@@ -20,6 +20,12 @@ public class Claim {
     private boolean showParticles;
     private List<UUID> trustedPlayers;
     
+    // NOWE UPRAWNIENIA
+    private boolean tntEnabled;
+    private boolean chestsPublic;
+    private boolean villagersPublic;
+    private boolean entryAllowed;
+    
     public Claim(UUID claimId, UUID ownerId, String ownerName, Location blockLocation, int tier) {
         this.claimId = claimId;
         this.ownerId = ownerId;
@@ -31,6 +37,12 @@ public class Claim {
         this.mobSpawning = true;
         this.showParticles = true;
         this.trustedPlayers = new ArrayList<>();
+        
+        // Domyślne wartości nowych uprawnień
+        this.tntEnabled = false;
+        this.chestsPublic = false;
+        this.villagersPublic = false;
+        this.entryAllowed = true;
     }
     
     public UUID getClaimId() {
@@ -115,8 +127,40 @@ public class Claim {
         return trustedPlayers.contains(playerId);
     }
     
+    // NOWE METODY DLA UPRAWNIEŃ
+    public boolean isTntEnabled() {
+        return tntEnabled;
+    }
+    
+    public void setTntEnabled(boolean tntEnabled) {
+        this.tntEnabled = tntEnabled;
+    }
+    
+    public boolean isChestsPublic() {
+        return chestsPublic;
+    }
+    
+    public void setChestsPublic(boolean chestsPublic) {
+        this.chestsPublic = chestsPublic;
+    }
+    
+    public boolean isVillagersPublic() {
+        return villagersPublic;
+    }
+    
+    public void setVillagersPublic(boolean villagersPublic) {
+        this.villagersPublic = villagersPublic;
+    }
+    
+    public boolean isEntryAllowed() {
+        return entryAllowed;
+    }
+    
+    public void setEntryAllowed(boolean entryAllowed) {
+        this.entryAllowed = entryAllowed;
+    }
+    
     public int getSize() {
-        // Zwraca rozmiar z config na podstawie tiera
         return pl.labmc.claims.LabClaims.getInstance().getConfig().getInt("tiers." + tier + ".size", 16);
     }
     
