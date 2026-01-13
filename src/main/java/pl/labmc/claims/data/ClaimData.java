@@ -32,6 +32,11 @@ public class ClaimData {
         }
     }
     
+// Wczytaj nowe uprawnienia
+claim.setTntEnabled(config.getBoolean("claims." + key + ".tnt-enabled", false));
+claim.setChestsPublic(config.getBoolean("claims." + key + ".chests-public", false));
+claim.setVillagersPublic(config.getBoolean("claims." + key + ".villagers-public", false));
+claim.setEntryAllowed(config.getBoolean("claims." + key + ".entry-allowed", true));    
     public void loadClaims() {
         YamlConfiguration config = YamlConfiguration.loadConfiguration(dataFile);
         
