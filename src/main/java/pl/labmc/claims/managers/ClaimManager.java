@@ -131,14 +131,19 @@ public class ClaimManager {
     }
     
     public void removeClaim(Claim claim) {
+        // NAPRAWIONE: Najpierw usuń hologram
         plugin.getHologramManager().removeHologram(claim);
         
+        // Usuń blok działki
         Location blockLoc = claim.getBlockLocation();
         if (blockLoc != null && blockLoc.getBlock() != null) {
             blockLoc.getBlock().setType(Material.AIR);
         }
         
+        // Usuń claim z danych (to zapisze zmiany)
         plugin.getClaimData().removeClaim(claim.getClaimId());
+        
+        plugin.getLogger().info("Usunieto dzialke: " + claim.getClaimName() + " (ID: " + claim.getClaimId() + ")");
     }
     
     public boolean canPlayerBuild(Player player, Location location) {
