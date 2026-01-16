@@ -3,6 +3,7 @@ package pl.labmc.claims.listeners;
 import org.bukkit.Material;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Villager;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -11,6 +12,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import pl.labmc.claims.LabClaims;
@@ -69,6 +71,26 @@ public class ProtectionListener implements Listener {
         Player player = event.getPlayer();
         Material blockType = event.getClickedBlock().getType();
         
+        Claim claim = plugin.getClaimData().getClaimAt(event.getClickedBlock().getLocation());
+        if (claim == null) return;
+        
+        // Sprawdź czy to skrzynia/barrel
+        if (blockType.name().contains("CHEST") || blockType.name().contains("BARREL") || 
+            blockType.name().contains("SHULKER_BOX")) {
+            
+            // Jeśli skrzynki publiczne - pozwól
+            if (claim.isChestsPublic()) return;
+            
+            // W przeciwnym razie sprawdź uprawnienia
+            if (!plugin.getClaimManager().canPlayerBuild(player, event.getClickedBlock().getLocation())) {
+                event.setCancelled(true);
+                player.sendMessage(plugin.colorize("&cWlasciciel dzialki zablokowal dostep do skrzyn!"));
+                plugin.playSound(player, "error");
+                return;
+            }
+        }
+        
+        // Sprawdź inne chronione bloki
         List<String> protectedBlocks = plugin.getConfig().getStringList("protection.protected-interactions");
         
         boolean isProtected = false;
@@ -79,7 +101,7 @@ public class ProtectionListener implements Listener {
                     break;
                 }
             } catch (IllegalArgumentException e) {
-                // Ignore invalid material
+                // Ignore
             }
         }
         
@@ -88,6 +110,26 @@ public class ProtectionListener implements Listener {
         if (!plugin.getClaimManager().canPlayerBuild(player, event.getClickedBlock().getLocation())) {
             event.setCancelled(true);
             player.sendMessage(plugin.getMessage("protection-message"));
+            plugin.playSound(player, "error");
+        }
+    }
+    
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onVillagerInteract(PlayerInteractEntityEvent event) {
+        if (!(event.getRightClicked() instanceof Villager)) return;
+        
+        Player player = event.getPlayer();
+        Claim claim = plugin.getClaimData().getClaimAt(event.getRightClicked().getLocation());
+        
+        if (claim == null) return;
+        
+        // Jeśli villagerzy publiczni - pozwól
+        if (claim.isVillagersPublic()) return;
+        
+        // W przeciwnym razie sprawdź uprawnienia
+        if (!plugin.getClaimManager().canPlayerBuild(player, event.getRightClicked().getLocation())) {
+            event.setCancelled(true);
+            player.sendMessage(plugin.colorize("&cWlasciciel dzialki zablokowal handel z villagerami!"));
             plugin.playSound(player, "error");
         }
     }
@@ -122,11 +164,12 @@ public class ProtectionListener implements Listener {
     
     @EventHandler(priority = EventPriority.HIGH)
     public void onEntityExplode(EntityExplodeEvent event) {
-        if (!plugin.getConfig().getBoolean("protection.explosions", true)) return;
-        
         event.blockList().removeIf(block -> {
             Claim claim = plugin.getClaimData().getClaimAt(block.getLocation());
-            return claim != null;
+            if (claim == null) return false;
+            
+            // Jeśli TNT włączone na działce - pozwól
+            return !claim.isTntEnabled();
         });
     }
     
@@ -157,6 +200,19 @@ public class ProtectionListener implements Listener {
         if (claimFrom == claimTo) return;
         
         if (claimTo != null) {
+            // Sprawdź czy gracz może wejść
+            if (!claimTo.isEntryAllowed()) {
+                // Owner i trusted mogą wejść zawsze
+                if (!claimTo.getOwnerId().equals(player.getUniqueId()) && 
+                    !claimTo.isTrusted(player.getUniqueId()) &&
+                    !player.hasPermission("labclaims.bypass")) {
+                    event.setCancelled(true);
+                    player.sendMessage(plugin.colorize("&cWlasciciel dzialki zablokowal wejscie!"));
+                    plugin.playSound(player, "error");
+                    return;
+                }
+            }
+            
             UUID lastClaim = lastClaimLocation.get(player.getUniqueId());
             if (lastClaim == null || !lastClaim.equals(claimTo.getClaimId())) {
                 String msg = plugin.getMessage("entered-claim")
@@ -164,11 +220,17 @@ public class ProtectionListener implements Listener {
                         .replace("%owner%", claimTo.getOwnerName());
                 player.sendMessage(msg);
                 lastClaimLocation.put(player.getUniqueId(), claimTo.getClaimId());
+                
+                // Pokaż granice jeśli włączone
+                if (claimTo.isShowParticles()) {
+                    plugin.getParticleManager().showClaimBorders(player, claimTo);
+                }
             }
         } else {
             if (claimFrom != null) {
                 player.sendMessage(plugin.getMessage("left-claim"));
                 lastClaimLocation.remove(player.getUniqueId());
+                plugin.getParticleManager().stopShowingBorders(player);
             }
         }
     }
