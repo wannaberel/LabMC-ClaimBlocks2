@@ -11,6 +11,7 @@ import pl.labmc.claims.listeners.ProtectionListener;
 import pl.labmc.claims.managers.ClaimManager;
 import pl.labmc.claims.managers.EconomyManager;
 import pl.labmc.claims.managers.HologramManager;
+import pl.labmc.claims.managers.ParticleManager;
 
 public class LabClaims extends JavaPlugin {
     
@@ -18,6 +19,7 @@ public class LabClaims extends JavaPlugin {
     private ClaimManager claimManager;
     private EconomyManager economyManager;
     private HologramManager hologramManager;
+    private ParticleManager particleManager;
     private ClaimData claimData;
     private Economy economy;
     
@@ -37,6 +39,7 @@ public class LabClaims extends JavaPlugin {
         this.claimManager = new ClaimManager(this);
         this.economyManager = new EconomyManager(this);
         this.hologramManager = new HologramManager(this);
+        this.particleManager = new ParticleManager(this);
         
         getCommand("claim").setExecutor(new ClaimCommand(this));
         
@@ -55,6 +58,9 @@ public class LabClaims extends JavaPlugin {
     
     @Override
     public void onDisable() {
+        if (particleManager != null) {
+            particleManager.stopAll();
+        }
         if (claimData != null) {
             claimData.saveClaims();
         }
@@ -90,6 +96,10 @@ public class LabClaims extends JavaPlugin {
     
     public HologramManager getHologramManager() {
         return hologramManager;
+    }
+    
+    public ParticleManager getParticleManager() {
+        return particleManager;
     }
     
     public ClaimData getClaimData() {
