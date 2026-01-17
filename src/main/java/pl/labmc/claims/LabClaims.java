@@ -7,12 +7,11 @@ import pl.labmc.claims.commands.ClaimCommand;
 import pl.labmc.claims.data.ClaimData;
 import pl.labmc.claims.listeners.ChatListener;
 import pl.labmc.claims.listeners.ClaimBlockListener;
-import pl.labmc.claims.listeners.CraftingListener;
 import pl.labmc.claims.listeners.ProtectionListener;
 import pl.labmc.claims.managers.ClaimManager;
 import pl.labmc.claims.managers.EconomyManager;
 import pl.labmc.claims.managers.HologramManager;
-import pl.labmc.claims.tasks.ParticleTask;
+import pl.labmc.claims.managers.ParticleManager;
 
 public class LabClaims extends JavaPlugin {
     
@@ -20,9 +19,9 @@ public class LabClaims extends JavaPlugin {
     private ClaimManager claimManager;
     private EconomyManager economyManager;
     private HologramManager hologramManager;
+    private ParticleManager particleManager;
     private ClaimData claimData;
     private Economy economy;
-    private ParticleTask particleTask;
     
     @Override
     public void onEnable() {
@@ -40,6 +39,7 @@ public class LabClaims extends JavaPlugin {
         this.claimManager = new ClaimManager(this);
         this.economyManager = new EconomyManager(this);
         this.hologramManager = new HologramManager(this);
+        this.particleManager = new ParticleManager(this);
         
         getCommand("claim").setExecutor(new ClaimCommand(this));
         
@@ -47,39 +47,26 @@ public class LabClaims extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ProtectionListener(this), this);
         getServer().getPluginManager().registerEvents(new ChatListener(this), this);
         
-        // NOWE: Rejestracja craftingu
-        CraftingListener craftingListener = new CraftingListener(this);
-        craftingListener.registerRecipes();
-        
         claimData.loadClaims();
         hologramManager.loadAllHolograms();
-        
-        // NOWE: Uruchom task dla particles (co 2 sekundy = 40 ticków)
-        this.particleTask = new ParticleTask(this);
-        this.particleTask.runTaskTimer(this, 40L, 40L);
         
         getLogger().info("================================");
         getLogger().info("LabClaims plugin wlaczony!");
         getLogger().info("System dzialek aktywny dla LabMC.pl");
-        getLogger().info("Crafting ClaimBlock Tier 1 dodany!");
-        getLogger().info("Particles granic dzialek aktywne!");
         getLogger().info("================================");
     }
     
     @Override
     public void onDisable() {
-        if (particleTask != null) {
-            particleTask.cancel();
+        if (particleManager != null) {
+            particleManager.stopAll();
         }
-        
         if (claimData != null) {
             claimData.saveClaims();
         }
-        
         if (hologramManager != null) {
             hologramManager.removeAllHolograms();
         }
-        
         getLogger().info("LabClaims plugin zostal wylaczony!");
     }
     
@@ -109,6 +96,10 @@ public class LabClaims extends JavaPlugin {
     
     public HologramManager getHologramManager() {
         return hologramManager;
+    }
+    
+    public ParticleManager getParticleManager() {
+        return particleManager;
     }
     
     public ClaimData getClaimData() {
