@@ -58,7 +58,7 @@ public class ParticleManager {
     
     private void spawnBorderParticles(Player player, Claim claim) {
         String particleType = plugin.getConfig().getString("particles.type", "REDSTONE");
-        int density = plugin.getConfig().getInt("particles.density", 20);
+        int density = plugin.getConfig().getInt("particles.density", 5);
         int heightInterval = plugin.getConfig().getInt("particles.height-interval", 5);
         
         int minX = claim.getMinX();
@@ -78,7 +78,6 @@ public class ParticleManager {
         }
         
         for (int y = playerY - 5; y <= playerY + 10; y += heightInterval) {
-            // Linie X (północ i południe)
             for (int x = minX; x <= maxX; x += density) {
                 Location loc1 = new Location(claim.getWorld(), x + 0.5, y, minZ + 0.5);
                 Location loc2 = new Location(claim.getWorld(), x + 0.5, y, maxZ + 0.5);
@@ -92,7 +91,6 @@ public class ParticleManager {
                 }
             }
             
-            // Linie Z (wschód i zachód)
             for (int z = minZ; z <= maxZ; z += density) {
                 Location loc1 = new Location(claim.getWorld(), minX + 0.5, y, z + 0.5);
                 Location loc2 = new Location(claim.getWorld(), maxX + 0.5, y, z + 0.5);
